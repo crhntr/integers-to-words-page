@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Numbers To Words</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="page-top">
+        <h1>Integers to Words</h1>
+        <input type="number" v-model="number" max="999999999">
+
+        <table>
+          <tbody>
+            <tr>
+              <td>{{ en }}</td>
+            </tr>
+            <tr>
+              <td>{{ es }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <button @click="showTable = !showTable">{{showTable ? 'Hide' : 'Show'}} Table</button>
+      </div>
+      <div class="generate-table" v-if="showTable">
+        <table>
+          <thead>
+            <tr>
+              <td>Start</td>
+              <td>End</td>
+              <td>Skip</td>
+            </tr>
+            <tr>
+              <td><input type="number" placeholder="start" v-model="start"/></td>
+              <td><input type="number" placeholder="end" :step="by" v-model="end"/></td>
+              <td><input type="number" placeholder="by" v-model="by"/></td>
+            </tr>
+            <br>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Integer</td>
+              <td>Spanish</td>
+              <td>English</td>
+            </tr>
+            <br>
+            <tr v-for="i in list">
+              <td>{{i}}</td>
+              <td>{{ convertirEnteroEnPalabras(i) }}</td>
+              <td>{{ convertIntegerToWords(i) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+
+  <script>
+  const upToTwenty = [
+  	"" /*"zero"*/, "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+  	"ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen",
+  ]
+
+  const tens = ["twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+
+  function convertIntegerToWords (num) {
+    if (num === '') { return '' }
+    if (num === '0') { return 'zero' }
+
+    let n = parseFloat(num)
+    if (n < 0) { return "negative " + convertIntegerToWords(-1*n) }
+    if (n < 20) { return upToTwenty[n]}
+    if (n < 100) { return (tens[Math.floor((n/10))-2] + " " + upToTwenty[n-(Math.floor(n/10)*10)]).trim() }
+    if (n < 1000) { return (upToTwenty[Math.floor(n/100)] + " hundred " + convertIntegerToWords(n-(Math.floor(n/100)*100))).trim() }
+    if (n < 1000000) { return convertIntegerToWords(Math.floor(n/1000)) + " thousand " + convertIntegerToWords(n%1000).trim() }
+    if (n < 1000000000) { return convertIntegerToWords(Math.floor(n/1000000)) + " million " + convertIntegerToWords(n%1000000).trim() }
+    return "(An error occurred. The integer entered was too big.)"
+  }
+
+  const hastaVeintinueve = [
+  	"" /*"zero"*/, "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve",
+  	"diez", "once", "doce", "trece", "catorce", "quince", "dieciséis", "diecisiete", "dieciocho", "diecinueve",
+    "veinte", "veintiuno", "veintidós", "veintitres", "veinticuatro", "veinticinco", "veintiseis", "veintisiete", "veintiocho", "veintinueve"
+  ]
+
+  const decenas = ["treinta", "cuarenta", "cincuenta", "sesenta", "setenta", "ochenta", "noventa"]
+  const cientos = ["ciento", "doscientos", "trescientos", "cuatrocientos", "quinientos", "seiscientos", "setecientos", "ochocientos", "novecientos"]
+
+  function convertirEnteroEnPalabras(num) {
+    if (num === '') { return '' }
+    if (num === '0') { return 'cero' }
+
+    let n = Math.floor(parseFloat(num))
+    if (n < 0) { return convertirEnteroEnPalabras(-1*n) + " negativo" }
+    if (n < 30) { return hastaVeintinueve[n]}
+    if (n < 100) {
+      let lower = hastaVeintinueve[n-(Math.floor(n/10)*10)];
+      return (decenas[Math.floor((n/10))-3] + (lower ? " y " + lower : '')).trim()
+    }
+    if (n === 100) { return "cien" }
+    if (n < 1000) {
+      let lower = convertirEnteroEnPalabras(n-(Math.floor(n/100)*100))
+      return cientos[Math.floor((n/100))-1] + ' ' +  lower
+    }
+    if (n === 1000) { return "mil" }
+    if (n < 1000000) {
+      let lower = convertirEnteroEnPalabras(n-(Math.floor(n/1000)*1000))
+      let miles = '';
+      if (Math.floor(n/1000) > 1) {
+        miles = convertirEnteroEnPalabras(n/1000)
+      }
+      return miles + ' mil' + (lower ? ' ' + lower : '')
+    }
+    if (n < 1000000000) {
+      let lower = convertirEnteroEnPalabras(n-(Math.floor(n/1000000)*1000000))
+      let millones = Math.floor(n/1000000)
+      if (millones <= 1) { return 'un millón ' + lower }
+      return convertirEnteroEnPalabras(millones) + ' millones ' + lower
+    }
+    return '(Ocurrió un error. El entero ingresado era demasiado grande.)'
+  }
+
+  var app = new Vue({
+    el: '#app',
+    data: {
+      number: 42,
+      showTable: false,
+      start: '0',
+      end: '10',
+      by: '2'
+    },
+    computed: {
+      en: function () { return this.convertIntegerToWords(this.number) },
+      es: function () { return this.convertirEnteroEnPalabras(this.number) },
+      list: function () {
+        let list = []
+        let start = parseInt(this.start)
+        let end = parseInt(this.end)
+        let by = parseInt(this.by)
+        if (start < end  && by > 0 && ((end - start)/by < 10000)) {
+          for (let i = start; i < end; i+= by) {
+            list.push(''+i)
+          }
+        }
+        return list
+      }
+    },
+    methods: {
+      convertIntegerToWords,
+      convertirEnteroEnPalabras
+    }
+  })
+  </script>
+
+  <style>
+    body, html {
+      background: HSL(220, 13%, 18%);
+      color: HSL(355, 100%, 44%);
+      font-family: monospace;
+      font-size: 24px;
+    }
+    #app {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    table {
+      width: 100%;
+    }
+    table tbody tr td {
+      border: 2px solid HSL(216, 13%, 15%);
+      padding: 10px;
+      width: 30%;
+    }
+    table tbody tr td:first-child {
+      background: HSL(216, 13%, 15%);
+    }
+    button {
+      background: HSL(210, 9%, 13%);
+      color: white;
+      font-family: monospace;
+      border: 2px solid HSL(216, 13%, 15%);
+      padding: 20px;
+      width: 100%;
+    }
+    button:hover {
+      background: HSL(217, 10%, 26%);
+    }
+    input {
+      background: HSL(210, 9%, 13%);
+      border: none;
+      padding: 20px;
+      color: white;
+    }
+    input[type="number"],
+    input[type="text"],
+    select:focus {
+      width: calc(100% - 40px);
+      font-size: 64px;
+    }
+  </style>
+</html>
